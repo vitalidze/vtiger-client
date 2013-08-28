@@ -66,6 +66,17 @@ public class Main {
         String sessionId = login.result.sessionName;
         System.out.println("Logged in. Session id = " + sessionId);
 
+        r = webTarget.queryParam("operation", "getworkflows")
+                .queryParam("sessionName", sessionId)
+                .request(MediaType.APPLICATION_JSON_TYPE).get();
+
+        GetWorkflowResponse response = r.readEntity(GetWorkflowResponse.class);
+
+        System.out.println("Workflows:");
+        for (GetWorkflowResponse.Workflow workflow : response.result.values()) {
+            System.out.println(workflow.description);
+        }
+
         webTarget.queryParam("operation", "logout")
                 .queryParam("sessionName", sessionId)
                 .request().get();
