@@ -1,6 +1,5 @@
 package su.litvak.vtiger;
 
-
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
@@ -14,13 +13,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Vitaly
- * Date: 26.08.13
- * Time: 23:47
- * To change this template use File | Settings | File Templates.
- */
 public class Main {
     public static void main(String[] args) throws Exception{
         // vTiger user name
