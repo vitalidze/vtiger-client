@@ -15,19 +15,33 @@ import java.security.NoSuchAlgorithmException;
 
 public class Main {
     public static void main(String[] args) throws Exception{
+        // vTiger web service URL
+        final String servceURL = "http://vtiger54.litvak.su/webservice.php";
         // vTiger user name
         final String userName = "admin";
         // vTiger API access key
         final String userAccessKey = "6sSVEhFbmqygRIys";
 
+        /**
+         * Create jersey RESTful client
+         */
         Client client = ClientBuilder.newClient().register(JacksonFeature.class);
 
-        WebTarget webTarget = client.target("http://vtiger54.litvak.su/webservice.php");
+        /**
+         * Set up end point
+         */
+        WebTarget webTarget = client.target(servceURL);
+        /**
+         * Retrieve challenge string
+         */
         Response r = webTarget.queryParam("operation", "getchallenge")
                .queryParam("username", userName)
                 .request(MediaType.APPLICATION_JSON_TYPE)
                .get();
 
+        /**
+         * Fail when service is unavailable
+         */
         if (r.getStatus() != 200) {
             System.out.println("Request failed with status: " + r.getStatus());
             System.exit(1);
@@ -40,6 +54,9 @@ public class Main {
             System.exit(1);
         }
 
+        /**
+         * Login using md5(challengeToken + accessKey) string
+         */
         r = webTarget
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.form(new Form()
@@ -58,17 +75,26 @@ public class Main {
         String sessionId = login.result.sessionName;
         System.out.println("Logged in. Session id = " + sessionId);
 
+        /**
+         * Load list of workflows by querying custom web service
+         */
         r = webTarget.queryParam("operation", "getworkflows")
                 .queryParam("sessionName", sessionId)
                 .request(MediaType.APPLICATION_JSON_TYPE).get();
 
         GetWorkflowResponse response = r.readEntity(GetWorkflowResponse.class);
 
+        /**
+         * Print list of workflow descriptions
+         */
         System.out.println("Workflows:");
         for (GetWorkflowResponse.Workflow workflow : response.result.values()) {
             System.out.println(workflow.description);
         }
 
+        /**
+         * Log out
+         */
         webTarget.queryParam("operation", "logout")
                 .queryParam("sessionName", sessionId)
                 .request().get();
@@ -76,12 +102,22 @@ public class Main {
         System.out.println("Logged out");
     }
 
+    /**
+     * <p>Calculates md5 for specified string.</p>
+     *
+     * <p>Result will be prefixed by zeroes in PHP manner because
+     * intended to be used for integration with PHP services.</p>
+     *
+     * @param s     string to calculate md5 sum for
+     * @return      md5 sum as hex string
+     * @throws NoSuchAlgorithmException
+     */
     private static String md5(String s) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5"); //or "SHA-1"
+        MessageDigest md = MessageDigest.getInstance("MD5");
         md.update(s.getBytes());
         BigInteger hash = new BigInteger(1, md.digest());
         String result = hash.toString(16);
-        while(result.length() < 32) { //40 for SHA-1
+        while(result.length() < 32) {
             result = "0" + result;
         }
         return result;
